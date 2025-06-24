@@ -1,99 +1,79 @@
-# Improved arXiv Paper Downloader
+# ArXiv Chatbot: Interactive Research Assistant
 
-This project provides improved functions for downloading arXiv papers with proper error handling, retry logic, and rate limiting to prevent connection reset errors.
+ArXiv Chatbot is a Streamlit-based research assistant that allows you to search, download, and interactively chat about arXiv papers using advanced language models. The app provides a user-friendly interface for exploring research topics, asking questions, and viewing source documents for each answer.
 
-## Problem Solved
+## Features
 
-The original code was encountering `ConnectionResetError` when trying to download many papers at once from arXiv. This happens because:
+- **Search arXiv**: Find papers by topic or keyword directly from the app.
+- **Download & Index**: Download selected papers and build a searchable vector database.
+- **Chat with Papers**: Ask questions about the papers and get answers with references to the original documents.
+- **Source Transparency**: Every answer includes clear references to the documents used.
+- **Robust Downloading**: Improved error handling, retry logic, and rate limiting for reliable paper downloads.
 
-1. **Rate Limiting**: arXiv has rate limits to prevent server overload
-2. **Connection Limits**: Too many simultaneous connections can cause the server to reset connections
-3. **No Error Handling**: The original code didn't handle network errors gracefully
+## Quick Start
 
-## Solution
+### 1. Run with Docker (Recommended)
 
-The improved functions include:
+```bash
+docker build -t arxiv-chatbot .
+docker run -p 8501:8501 arxiv-chatbot
+```
+Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
-- **Retry Logic**: Automatic retry with exponential backoff
-- **Rate Limiting**: Delays between downloads to respect server limits
-- **Error Handling**: Graceful handling of network errors
-- **Progress Tracking**: Clear feedback on download progress
-- **Configurable Limits**: Control how many papers to download
+### 2. Run Locally
 
-## Files
-
-- `utils.py`: Contains all the improved functions
-- `main.py`: Example script showing how to use the functions
-- `test_improved.py`: Test script for Jupyter notebooks
-- `test.ipynb`: Original notebook (for reference)
+Make sure you have Python 3.12 and all dependencies installed:
+```bash
+pip install -r requirements.txt
+streamlit run chat.py
+```
 
 ## Usage
 
-### Option 1: Run the main script
-```bash
-python main.py
-```
+1. **Search for Papers**: Enter a topic or keywords in the "Search ArXiv" tab.
+2. **Download & Index**: Select the number of papers to download and initialize the chat.
+3. **Chat**: Switch to the "Chat" tab and ask questions about the downloaded papers. Each answer will include references to the source documents.
 
-### Option 2: Use in Jupyter notebook
+## Example
+
+<!-- Add a screenshot or GIF here if desired -->
+
+## Advanced: Programmatic Paper Downloading
+
+The project also includes improved utilities for downloading and processing arXiv papers with robust error handling. These can be used independently in scripts or notebooks.
+
 ```python
-# Import the improved functions
 from utils import search_arxiv_simple, arxiv_to_faiss
 
-# Create a search
 search = search_arxiv_simple("transformer", max_results=10)
-
-# Download and create FAISS database (limit to 5 papers)
 db = arxiv_to_faiss(search=search, max_papers=5)
 ```
 
-### Option 3: Use the test function
-```python
-from test_improved import test_improved_download
-db = test_improved_download()
-```
-
-## Key Improvements
-
-1. **`download_paper_with_retry()`**: Downloads a single paper with retry logic
-2. **`save_arxiv_results()`**: Downloads multiple papers with error handling
-3. **`arxiv_to_documents()`**: Processes downloaded papers into documents
-4. **`arxiv_to_faiss()`**: Creates FAISS database from documents
-
 ## Configuration
 
-You can adjust these parameters:
-
+You can adjust these parameters in the code or UI:
 - `max_papers`: Maximum number of papers to download (default: 10)
 - `max_retries`: Number of retry attempts per paper (default: 3)
 - `delay`: Base delay between downloads in seconds (default: 2.0)
 
-## Example Output
-
-```
-Testing improved arXiv download with error handling...
-Starting download...
-Successfully downloaded: Attention Is All You Need
-Successfully downloaded: BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
-Successfully downloaded: GPT-2: Language Models are Unsupervised Multitask Learners
-Successfully downloaded 3 out of 3 papers
-Successfully loaded 3 documents from directory
-Split into 45 chunks
-✅ Success! Database created with 45 vectors
-```
-
 ## Troubleshooting
 
-If you still encounter issues:
-
-1. **Reduce `max_papers`**: Try downloading fewer papers at once
-2. **Increase `delay`**: Add more time between downloads
-3. **Check internet connection**: Ensure stable network connection
-4. **Try different search terms**: Some papers might not be available
+- If downloads fail, try reducing `max_papers` or increasing `delay`.
+- Ensure a stable internet connection.
+- Some papers may not be available for download.
 
 ## Dependencies
 
-Make sure you have these packages installed:
-```bash
-pip install arxiv langchain faiss-cpu sentence-transformers pypdf
-```
+All dependencies are listed in `requirements.txt`. Key packages include:
+- `streamlit`
+- `arxiv`
+- `langchain`
+- `faiss-cpu`
+- `sentence-transformers`
+- `pypdf`
+
+## Credits
+
+- Built with [Streamlit](https://streamlit.io/), [LangChain](https://python.langchain.com/), and [arXiv](https://arxiv.org/).
+
 
