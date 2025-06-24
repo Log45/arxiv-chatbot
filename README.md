@@ -34,9 +34,11 @@ streamlit run chat.py
 2. **Download & Index**: Select the number of papers to download and initialize the chat.
 3. **Chat**: Switch to the "Chat" tab and ask questions about the downloaded papers. Each answer will include references to the source documents.
 
-## Example
+## Next Steps
 
-<!-- Add a screenshot or GIF here if desired -->
+- Add a UI interface for advanced ArXiv search to combine and ignore multiple queries based on arXiv API documentation. 
+- Add a an option to create a new chat, which creates a new database and chat log with a unique session id, creating separation from past context.
+- Deploy to Google Cloud or Azure.
 
 ## Advanced: Programmatic Paper Downloading
 
