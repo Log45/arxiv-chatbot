@@ -1,10 +1,10 @@
 import arxiv
 import markitdown
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
-from langchain.llms import OpenAIChat
-from langchain.document_loaders import DirectoryLoader
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_core.documents import Document
 from typing import List, Dict, Union, Any
 import os
@@ -14,9 +14,25 @@ from urllib.error import HTTPError, URLError
 from urllib.request import urlretrieve
 import traceback
 from pathlib import Path
+from dotenv import load_dotenv
+import uuid
+import logging
+import warnings
+
+# Suppress PDF color parsing warnings
+logging.getLogger("pdfminer").setLevel(logging.ERROR)
+logging.getLogger("pypdf").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore", message=".*invalid float value.*")
+warnings.filterwarnings("ignore", message=".*Cannot set gray.*")
+
+load_dotenv()
 
 # Global client
 client = arxiv.Client()
+
+def generate_session_id():
+    """Generates a cryptographically secure, random session ID."""
+    return str(uuid.uuid4())
 
 def search_arxiv_simple(query: str, max_results: int = 10, prefix: str = "all") -> arxiv.Search:
     """Function to search arxiv for a simple query including only one prefix. 
@@ -128,7 +144,7 @@ def save_arxiv_results(search: arxiv.Search, output_dir: str, max_papers: int = 
     print(f"Successfully downloaded {len(downloaded_files)} out of {max_papers} papers")
     return downloaded_files
 
-def initialize_db(documents: List[Document], embeddings: HuggingFaceEmbeddings) -> FAISS:
+def initialize_db(documents: List[Document], embeddings: Union[HuggingFaceEmbeddings, OpenAIEmbeddings]) -> FAISS:
     """Function to initialize a FAISS database from a list of documents.
     
     Args:
@@ -167,7 +183,7 @@ def arxiv_to_documents(search: arxiv.Search, max_papers: int = 10) -> List[Docum
         print(f"Successfully loaded {len(docs)} documents from directory")
         
         # Split into smaller chunks
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         documents = text_splitter.split_documents(docs)
         print(f"Split into {len(documents)} chunks")
         
@@ -176,12 +192,13 @@ def arxiv_to_documents(search: arxiv.Search, max_papers: int = 10) -> List[Docum
         print(f"Error loading documents: {str(e)}")
         return []
 
-def arxiv_to_faiss(search: arxiv.Search, max_papers: int = 10) -> FAISS:
+def arxiv_to_faiss(search: arxiv.Search, max_papers: int = 10, embeddings: Union[HuggingFaceEmbeddings, OpenAIEmbeddings] = None) -> FAISS:
     """Function to convert an arxiv search to a FAISS database.
     
     Args:
         search (arxiv.Search): Search to convert to a FAISS database.
         max_papers (int): Maximum number of papers to download and process.
+        embeddings (Union[HuggingFaceEmbeddings, OpenAIEmbeddings]): Embedding model to use for the database.
     """
     documents = arxiv_to_documents(search, max_papers)
     
@@ -189,6 +206,8 @@ def arxiv_to_faiss(search: arxiv.Search, max_papers: int = 10) -> FAISS:
         print("No documents to process. Returning None.")
         return None
     
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    if embeddings is None:
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    
     db = initialize_db(documents, embeddings)
     return db
