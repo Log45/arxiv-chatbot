@@ -39,6 +39,7 @@ streamlit run chat.py
 - Add a UI interface for advanced ArXiv search to combine and ignore multiple queries based on arXiv API documentation. 
 - Add a an option to create a new chat, which creates a new database and chat log with a unique session id, creating separation from past context.
 - Deploy to Google Cloud or Azure.
+- Add an upload option for papers from local machine.
 
 ## Advanced: Programmatic Paper Downloading
 
